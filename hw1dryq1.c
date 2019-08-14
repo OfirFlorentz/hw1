@@ -22,7 +22,7 @@ void* listCreate(void* arr[], int n, void* copyElement(void*), void freeElement(
 	head->next = list;
 	List p1 = NULL;
 	for (int i = 0; i < n; i++)	{
-		list->data = copyElement(arr[0]);
+		list->data = copyElement(arr[i]);
 		p1 = malloc(sizeof(List));
 		if (p1 == NULL) {
 			listDestroy(head, freeElement);
