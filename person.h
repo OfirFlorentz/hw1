@@ -17,7 +17,7 @@ typedef enum  { MASCULINE, FEMININE } Gender;
 
 /*the func get data and put into a Person starcture
 the func return a pointer to the person*/
-Person createPerson(char* name, char* id, char gender);
+Person createPerson(char* name, char* id, Gender gender);
 
 /* the func free the memory of the pointer to person stracture*/
 void freePerson(void* p);
@@ -27,6 +27,12 @@ void* copyPerson(void* object);
 
 /*the func return the id of the person*/
 char* getId(Person p);
+
+/*the func return the name of the person*/
+char* getName(Person p);
+
+/*the func return the gender of the person*/
+Gender getGender(Person p);
 
 
 #endif // ! PERSON_H_

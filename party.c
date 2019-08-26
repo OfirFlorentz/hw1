@@ -2,23 +2,23 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "party.h"
+#include <stdbool.h>
 #include "list.h"
 #include "person.h"
-
+#include "party.h"
 
 
 struct party
 {
 	char name[NAME_BUFFER];
-	char* combination_code[NAME_BUFFER];
+	char combination_code[NAME_BUFFER];
 	List party_members;
 };
 
 /*the func get an ID as an in input
 *return true if its valid and the ID is not already in the list
 *return false otherwise */
-static bool checkId(List list, char* id)
+static bool checkId(char* id)
 {
 	assert(id != NULL); //not necsesry already checked
 	int counter = 0;
@@ -27,10 +27,6 @@ static bool checkId(List list, char* id)
 		counter++;
 	}
 	if (counter != 9) return false;
-	while (list != NULL) {
-		if (strcmp(getId(listGetCurrent(list)), id) == 0) return false;
-		listGetNext(list);
-	}
 	return true;
 }
 //----------------------------------------------------------------------
@@ -38,19 +34,18 @@ static bool checkId(List list, char* id)
 in the list*/
 static void lineToPartyMember(List list, char* line) {
 	if (line == NULL) return;
-	int counter = 0;
+	int name_counter = 0;
 	char name[NAME_BUFFER];
 	char id[ID_SIZE + 1];
-	char gender;
-
+	
 	while (*line == ' ') {
 		line++;
 	}
 	while (!*line == ' ') {
-		name[counter++] = *line;
+		name[name_counter++] = *line;
 		line++;
 	}
-	name[counter] = 0;
+	name[name_counter] = 0;
 	while (*line == ' ') {
 		line++;
 	}
@@ -62,16 +57,29 @@ static void lineToPartyMember(List list, char* line) {
 	while (*line == ' ') {
 		line++;
 	}
-	gender = *line;
+	Gender gender;
+	if (*line == M) {
+		gender = MASCULINE;
+	} else {
+		gender = FEMININE;
+	}
 	Person p = createPerson(name, id, gender);
 	listInsertLast(list, p);
 	assert(p != NULL);
 	free(p);
 }
 //----------------------------------------------------------------------
+// changing Enum type to string. helps to SaveParty
+static char* printGenderName(Gender gender)
+{
+	if (gender == MASCULINE) return "M"; //we need to ask isreal if it should be M or Mascoline
+	return "F"; //same
+}
+//----------------------------------------------------------------------
 // create a new party. The data file contains all data relevant to the party.
 // first line - party name. next line - letter combination code (used in voting
 // in elections). in each of the next lines we have the candidates of the party.
+// each candidate in a separate line. in each line we have (left to right) :
 // each candidate in a separate line. in each line we have (left to right) :
 // candidate name(one word without spaces), then ID (9 digits exactly), then
 // M (Masculine) of F (Feminine). between every 2 successive word in the same line
@@ -85,14 +93,16 @@ static void lineToPartyMember(List list, char* line) {
 // the function can fail in the following cases : file does not exist, memory problem.
 
 Party createParty(char *party_data_file) {
-	PartyResult result;
 	FILE *fp = fopen(party_data_file, "r");
 	if (fp == NULL) {
 		fprintf(stdout, "file does not exists "); // should we use assert insted
 		return NULL; 
 	}
 	Party party = malloc(sizeof(*party));
-	if (!party) return NULL;
+	if (!party) {
+		fclose(fp);
+		return NULL;
+	}
 	char line[BUFFER_SIZE] = ""; //we need to use malloc didnt know how to do it
 	fgets(party->name, BUFFER_SIZE + 1, fp); //is it good? is +1 is neccesry
 	fgets(party->combination_code, BUFFER_SIZE + 1, fp); //is it good?
@@ -101,12 +111,14 @@ Party createParty(char *party_data_file) {
 		free(party);
 		return NULL;
 	}
+	int pepole_counter = 0;
 	while (fp != NULL) {
 		fgets(line, BUFFER_SIZE, fp);
 		lineToPartyMember(party_members, line);
+		pepole_counter++;
 	}
 	fclose(fp);
-	assert(result == PARTY_SUCCESS);
+	assert(pepole_counter >= MIN_PEPOLE_IN_FILE); // we can delete we can assuume it and its a lot of code
 	return party;
 }
 //----------------------------------------------------------------------
@@ -137,16 +149,15 @@ void destroyParty(Party party)
 
 
 PartyResult addPerson(Party party, char *name, char *id, Gender gender, int position) {
-	assert(party != NULL || name != NULL || id != NULL);
-	if(!checkId(party->party_members, id) || position <= 1 || strcmp("", name) == 0)  return PARTY_FAIL;
-	ListResult result;
-	List list_copy = party->party_members;
+	assert(party != NULL && name != NULL && id != NULL);
+	if(!checkId(id) || position <= 1 || strcmp("", name) == 0 || isMember(party, id))  return PARTY_FAIL;
+	List list_party = party->party_members;
 	Person p = createPerson(name, id, gender);
 	assert(p != NULL);
 	for (int i = 0; i < position; i++) {
-		listGetNext(list_copy);
+		listGetNext(list_party);
 	}
-	result = listInsertBeforeCurrent(list_copy, p);
+	ListResult result = listInsertBeforeCurrent(list_party, p);
 	freePerson(p);
 	assert(result == LIST_SUCCESS);
 	return PARTY_SUCCESS;
@@ -161,15 +172,32 @@ PartyResult addPerson(Party party, char *name, char *id, Gender gender, int posi
 // if party or id is NULL or the person appears in the party in more than 1 position - then
 // handle with assert.
 
-PartyResult deletePerson(Party party, char *id)
+PartyResult deletePerson(Party party, char *id) {
+	assert(party != NULL && id != NULL);
+	List list_party = party->party_members;
+	while (list_party != NULL) {
+		if (strcmp(getId(listGetCurrent(list_party)), id) == 0) {
+			listRemoveCurrent(list_party);
+			return PARTY_SUCCESS;
+		}
+		listGetNext(list_party);
+	}
+	return PARTY_FAIL;
+}
 
 //----------------------------------------------------------------------
 // check if a person with the given id is a member in the given party.
 // returns true or false.
 // if any parameter is NULL - handle with assert.
 // if id is illegal - returns false.
-
-bool isMember(Party party, char *id)
+bool isMember(Party party, char *id) {
+	List list_party = party->party_members;
+	while (list_party != NULL) {
+		if (strcmp(getId(listGetCurrent(list_party)), id) == 0) return true;
+		listGetNext(list_party);
+	}
+	return false;
+}
 
 //----------------------------------------------------------------------
 // join two existing parties into a new outcome party.
@@ -186,10 +214,40 @@ bool isMember(Party party, char *id)
 // fail if any memory problem, there is any person who appears in both parties, 
 // if one of the pointer parameters is NULL, handle with assert.
 
-PartyResult joinParties(Party* original_party_1, Party* original_party_2,
-	Party* outcome_party, int position_party_2[],
-	int n /*length of position_party_2*/,
-	char *new_name, char *new_code)
+PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party* outcome_party, int position_party_2[],
+	int n /*length of position_party_2*/, char *new_name, char *new_code) {
+	Party new_party = malloc(sizeof(*new_party));
+	if (!new_party) return PARTY_FAIL;
+	strcpy(new_party->name, new_name);
+	strcpy(new_party->combination_code, new_code);
+	new_party->party_members = listCopy((*original_party_1)->party_members);
+	if (new_party->party_members == NULL) {
+		free(new_party);
+		return PARTY_FAIL;
+	}
+	List new_list = new_party->party_members;
+	List p2_list = (*original_party_2)->party_members;
+	// i assume array is ordered we need to check
+	int current_postion = 1;
+	int p2_counter = 0;
+	while (p2_list != NULL && p2_counter < n )
+	{
+		if (position_party_2[p2_counter] == current_postion) {
+			p2_counter++;
+			listInsertBeforeCurrent(new_list, listGetCurrent(p2_list));
+			listGetNext(p2_list);
+		}
+		else {
+			listGetNext(new_list);
+		}
+		current_postion++;
+	}
+	while(p2_list != NULL) {
+		listInsertAfterCurrent(new_list, listGetCurrent(p2_list));
+		listGetNext(new_list);
+		listGetNext(p2_list);
+	}
+}
 
 //----------------------------------------------------------------------
 // display the party (part of the party) in standard output.
@@ -203,7 +261,24 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2,
 // (including).
 // if party is NULL, then handle with assert.
 
-PartyResult displayParty(Party party, int from_position, int to_position)
+PartyResult displayParty(Party party, int from_position, int to_position) {
+	assert(party != NULL);
+	fprintf(stdout, "%s" ,party->name);
+	fprintf(stdout, "%s", party->combination_code);
+	//im not sure that this is what isreal ment to
+	List party_list = party->party_members;
+	if (from_position < listGetSize(party_list)) {
+		for (int i = 0; i < from_position - 1; i++) {
+			listGetNext(party_list);
+		}
+	}
+	//end of im not sure
+	for (int i = 0; i <= to_position - from_position && party_list != NULL; i++) {
+		Person p = listGetCurrent(party_list);
+		fprintf(stdout, "%s %s %s /n", getName(p), getId(p), printGenderName(getGender(p)));
+		listGetNext(party_list);
+	}
+}
 
 //----------------------------------------------------------------------
 // save the party in the file whose name is given.
@@ -213,15 +288,37 @@ PartyResult displayParty(Party party, int from_position, int to_position)
 // if the file already exists, then its old contents is lost.
 // if any parameter is NULL, then handle with assert.
 
-PartyResult saveParty(Party party, char *party_data_file)
+PartyResult saveParty(Party party, char *party_data_file) {
+	assert(party != NULL);
+	FILE* fp =  fopen(party_data_file, "w");
+	if (!fp) return PARTY_FAIL;
+	fputs(party->name, fp);
+	fputs(party->combination_code, fp);
+	List party_list = party->party_members;
+	while (party_list != NULL) {
+		Person p = listGetCurrent(party_list);
+		fprintf(fp, "%s %s %s /n", getName(p), getId(p), printGenderName(getGender(p)));
+		listGetNext(party_list);
+	}
+	fclose(fp);
+	return PARTY_SUCCESS;
+}
+
 
 //----------------------------------------------------------------------
 // check if there is any candidate that appears both in two parties.
 // returns true or false.
 // a candidate is identified according to its ID (ONLY). 
 // if any parameter is NULL - handle with assert.
-bool haveCommonMembers(Party party1, Party party2)
-
+bool haveCommonMembers(Party party1, Party party2) {
+	List party_1_list = party1->party_members;
+	while (party_1_list != NULL) {
+		char* cur_id = getId(listGetCurrent(party_1_list));
+		if (isMember(party2, cur_id)) return true;
+		listGetNext(party_1_list);
+	}
+	return false;
+}
 //----------------------------------------------------------------------
 // get the name, code and size (number of persons) of a party.
 // party code has exactly 9 char digits. party_name has 1 or more chars (length is
@@ -229,7 +326,8 @@ bool haveCommonMembers(Party party1, Party party2)
 // if any parameter (both input parameter and output parameters) is NULL then handle by assert.
 // fail in any other problem such as memory problem.
 
-PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int **party_size);
+PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int **party_size){
+}
 
 
 
