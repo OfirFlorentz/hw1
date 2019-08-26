@@ -1,12 +1,18 @@
 #ifndef PARTY_H_
 #define PARTY_H_
 
-#include "person.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 #include <stdbool.h>
+#include "list.h"
+#include "person.h"
 
 #define BUFFER_SIZE 256
 #define ONE '1'
 #define NINE '9'
+#define MIN_PEPOLE_IN_FILE 2
 
 //----------------------------------------------------------------------
 typedef enum party_result { PARTY_SUCCESS, PARTY_FAIL } PartyResult;
