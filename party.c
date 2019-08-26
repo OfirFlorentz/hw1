@@ -7,6 +7,10 @@
 #include "person.h"
 #include "party.h"
 
+#define BUFFER_SIZE 256
+#define ONE '1'
+#define NINE '9'
+#define MIN_PEPOLE_IN_FILE 2
 
 struct party
 {
@@ -247,6 +251,7 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 		listGetNext(new_list);
 		listGetNext(p2_list);
 	}
+	return PARTY_SUCCESS;
 }
 
 //----------------------------------------------------------------------
@@ -255,29 +260,25 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 // as parameter to the function partyCreate with the following exceptions :
 // between any 2 successive words in the same line there appears exactly one space char, not more.
 // in addition, no spaces can appear in the beginning and/or at the end of a line.
-// the persons displayed here are only those from position from_position (including) to
-// position to_position (including). if from_position <= size of the party then the display
-// is from position 1. if to_position >= size of the party then the display is till last position
-// (including).
+// in addition, a person name can be of any length and is not limited to 50 chars.
+// the persons displayed here are only those from position from_position (including) up to
+// position to_position (including). if from_position < 1 then the display
+// is from position 1. if to_position > size of the party then the display is up to (including)
+// the last position. can assume here that from_position <= to_position.
 // if party is NULL, then handle with assert.
 
 PartyResult displayParty(Party party, int from_position, int to_position) {
 	assert(party != NULL);
 	fprintf(stdout, "%s" ,party->name);
 	fprintf(stdout, "%s", party->combination_code);
-	//im not sure that this is what isreal ment to
 	List party_list = party->party_members;
-	if (from_position < listGetSize(party_list)) {
-		for (int i = 0; i < from_position - 1; i++) {
-			listGetNext(party_list);
-		}
-	}
-	//end of im not sure
+	if (from_position < 1) from_position = 1;
 	for (int i = 0; i <= to_position - from_position && party_list != NULL; i++) {
 		Person p = listGetCurrent(party_list);
 		fprintf(stdout, "%s %s %s /n", getName(p), getId(p), printGenderName(getGender(p)));
 		listGetNext(party_list);
 	}
+	return PARTY_SUCCESS;
 }
 
 //----------------------------------------------------------------------
@@ -326,8 +327,14 @@ bool haveCommonMembers(Party party1, Party party2) {
 // if any parameter (both input parameter and output parameters) is NULL then handle by assert.
 // fail in any other problem such as memory problem.
 
-PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int **party_size){
-}
+//i deleted * from int *party_size
 
+PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int *party_size) {
+	assert(party_name != NULL && party_code != NULL && party_size != NULL);
+	strcpy(*party_name, party->name);
+	strcpy(*party_code, party->combination_code);
+	*party_size = listGetSize(party->party_members);
+	return PARTY_SUCCESS;
+}
 
 

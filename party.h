@@ -9,10 +9,6 @@
 #include "list.h"
 #include "person.h"
 
-#define BUFFER_SIZE 256
-#define ONE '1'
-#define NINE '9'
-#define MIN_PEPOLE_IN_FILE 2
 
 //----------------------------------------------------------------------
 typedef enum party_result { PARTY_SUCCESS, PARTY_FAIL } PartyResult;
@@ -136,7 +132,10 @@ bool haveCommonMembers(Party party1, Party party2);
 // if any parameter (both input parameter and output parameters) is NULL then handle by assert.
 // fail in any other problem such as memory problem.
 
-PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int **party_size);
+PartyResult getPartyDetails(Party party, char **party_name, char *party_code, int *party_size);
 
 //----------------------------------------------------------------------
+
+
+
 #endif // PARTY_H_
