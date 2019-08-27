@@ -7,7 +7,8 @@
 #include "person.h"
 #include "party.h"
 
-#define BUFFER_SIZE 256
+
+#define NAME_BUFFER 51
 #define ONE '1'
 #define NINE '9'
 #define MIN_PEPOLE_IN_FILE 2
@@ -36,41 +37,55 @@ static bool checkId(char* id)
 //----------------------------------------------------------------------
 /* the func get a line from the file and a list of pepoles and insert the data from the line to the last place
 in the list*/
-static void lineToPartyMember(List list, char* line) {
-	if (line == NULL) return;
-	int name_counter = 0;
+static void fileToPartyMember(List list, FILE* fp) {
+	assert(fp != NULL && list != NULL);
 	char name[NAME_BUFFER];
 	char id[ID_SIZE + 1];
-	
-	while (*line == ' ') {
-		line++;
-	}
-	while (!*line == ' ') {
-		name[name_counter++] = *line;
-		line++;
-	}
-	name[name_counter] = 0;
-	while (*line == ' ') {
-		line++;
-	}
-	for (int i = 0; i < ID_SIZE; i++) {
-		name[i] = *line;
-		line++;
-	}
-	name[ID_SIZE] = 0;
-	while (*line == ' ') {
-		line++;
-	}
+	int name_counter = 1;
+	int digit;
+	Person p;
 	Gender gender;
-	if (*line == M) {
-		gender = MASCULINE;
-	} else {
-		gender = FEMININE;
+	while (true)
+	{
+		digit = fgetc(fp);
+		assert(digit != EOF); //empty spaces
+		while (digit == ' ') {
+			digit = fgetc(fp);
+			assert(digit != EOF);
+		}
+		while (digit != ' ') { //get name
+			name[name_counter++] = digit;
+			digit = fgetc(fp);
+			assert(digit != EOF);
+		}
+		while (digit == ' ') { //empty spaces
+			digit = fgetc(fp);
+			assert(digit != EOF);
+		}
+		for (int i = 0; i < ID_SIZE; i++) { //get id
+			id[i] = digit;
+			digit = fgetc(fp);
+		}
+		while (digit == ' ') { //empty spaces
+			digit = fgetc(fp);
+			assert(digit != EOF);
+		}
+		if (digit == M) {
+			gender = MASCULINE;
+		}
+		else {
+			gender = FEMININE;
+		}
+		p = createPerson(name, id, gender);
+		listInsertLast(list, p);
+		assert(p != NULL);
+		free(p);
+		while (digit == ' ') { //empty spaces
+			digit = fgetc(fp);
+		}
+		if (digit == EOF) break;
+		assert(digit == '\n');
 	}
-	Person p = createPerson(name, id, gender);
-	listInsertLast(list, p);
-	assert(p != NULL);
-	free(p);
 }
 //----------------------------------------------------------------------
 // changing Enum type to string. helps to SaveParty
@@ -107,22 +122,16 @@ Party createParty(char *party_data_file) {
 		fclose(fp);
 		return NULL;
 	}
-	char line[BUFFER_SIZE] = ""; //we need to use malloc didnt know how to do it
-	fgets(party->name, BUFFER_SIZE + 1, fp); //is it good? is +1 is neccesry
-	fgets(party->combination_code, BUFFER_SIZE + 1, fp); //is it good?
-	List party_members = listCreate(copyPerson, freePerson);
-	if (!party_members) {
+	fgets(party->name, NAME_BUFFER, fp); //is it good? is +1 is neccesry
+	fgets(party->combination_code, NAME_BUFFER, fp); //is it good?
+	party->party_members = listCreate(copyPerson, freePerson);
+	if (!party->party_members) {
 		free(party);
 		return NULL;
 	}
-	int pepole_counter = 0;
-	while (fp != NULL) {
-		fgets(line, BUFFER_SIZE, fp);
-		lineToPartyMember(party_members, line);
-		pepole_counter++;
-	}
+	fileToPartyMember(party->party_members, fp);
 	fclose(fp);
-	assert(pepole_counter >= MIN_PEPOLE_IN_FILE); // we can delete we can assuume it and its a lot of code
+	assert (listGetSize(party->party_members) >= MIN_PEPOLE_IN_FILE); // we can delete we can assuume it and its a lot of code
 	return party;
 }
 //----------------------------------------------------------------------
@@ -298,7 +307,7 @@ PartyResult saveParty(Party party, char *party_data_file) {
 	List party_list = party->party_members;
 	while (party_list != NULL) {
 		Person p = listGetCurrent(party_list);
-		fprintf(fp, "%s %s %s /n", getName(p), getId(p), printGenderName(getGender(p)));
+		fprintf(fp, "%50s %s %s /n", getName(p), getId(p), printGenderName(getGender(p)));
 		listGetNext(party_list);
 	}
 	fclose(fp);
@@ -329,10 +338,10 @@ bool haveCommonMembers(Party party1, Party party2) {
 
 //i deleted * from int *party_size
 
-PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int *party_size) {
+PartyResult getPartyDetails(Party party, char *party_name, char *party_code, int *party_size) {
 	assert(party_name != NULL && party_code != NULL && party_size != NULL);
-	strcpy(*party_name, party->name);
-	strcpy(*party_code, party->combination_code);
+	strcpy(party_name, party->name);
+	strcpy(party_code, party->combination_code);
 	*party_size = listGetSize(party->party_members);
 	return PARTY_SUCCESS;
 }

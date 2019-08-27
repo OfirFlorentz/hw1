@@ -49,7 +49,7 @@ Person createPerson (char* input_name, char* id, Gender
 //delete a person with all his data
 void* copyPerson(void* object) {
 	Person p = object;
-	char id[ID_SIZE + 1]; 
+	char id[ID_SIZE + 1];	
 	char name[NAME_BUFFER + 1];
 	strcpy(name, p->name);
 	strcpy(id, p->id);
