@@ -8,7 +8,7 @@
 *
 * Implements a set container type.
 * The set has an internal iterator for external use. For all functions
-* where the state of the iterator after callxing that function is not stated,
+* where the state of the iterator after calling that function is not stated,
 * it is undefined. That is you cannot assume anything about it.
 *
 * The following functions are available:

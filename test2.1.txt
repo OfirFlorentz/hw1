@@ -1,0 +1,2 @@
+
+int compare(Party prt1, Party prt2);
