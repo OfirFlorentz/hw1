@@ -1,30 +1,27 @@
 #ifndef PARTY_H_
 #define PARTY_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
 #include <stdbool.h>
-#include "list.h"
-#include "person.h"
-
 
 //----------------------------------------------------------------------
 typedef enum party_result { PARTY_SUCCESS, PARTY_FAIL } PartyResult;
+typedef enum gender { MASCULINE, FEMININE } Gender;
 typedef char* PartyCode; // letter combination used for voting in elections.
 
 typedef struct party *Party;
 
 //----------------------------------------------------------------------
 // create a new party. The data file contains all data relevant to the party.
-// first line - party name. next line - letter combination code (used in voting
-// in elections). in each of the next lines we have the candidates of the party.
+// first line - party name (no spaces in the name. no more than 50 characters).
+// next line - letter combination code (used in voting in elections. np spaces in the code.
+// no more than 50 characters).
+// in each of the next lines we have the candidates of the party.
 // each candidate in a separate line. in each line we have (left to right) :
-// candidate name(one word without spaces), then ID (9 digits exactly), then
-// M (Masculine) of F (Feminine). between every 2 successive word in the same line
-// there is 1 or more spaces. there can be also spaces in the start of a line and/or
-// in the end of a line. in the end of each line there is a new line.
+// candidate name(no spaces in the name. no more than 50 characters),
+// then ID (9 digits exactly), then M (Masculine) or F (Feminine). between every
+// 2 successive words in the same line there is 1 or more spaces. there can be also spaces
+// in the start of a line and/or in the end of a line.
+// in the end of each line there is a new line.  due to spaces, line length is NOT limited.
 // all candidates appear in the file according to their position in the party.
 // third line in the file gives the first candidate. 4th line in the file
 // gives the 2nd candidate, and so on.
@@ -44,6 +41,7 @@ void destroyParty(Party party);
 // add new person to the party in such a way that his (her) position
 // after the adding operation is as the relevant parameter.
 // all relevant entities should be saved in the Party ADT by deep copy.
+// the person name (given as parameter) is NOT limited in its length and can be of any length.
 // if there is already a person in that position, then all existing persons
 // starting from this position move 1 position forward. if the position is
 // greater than the current size of the party, then the person is added
@@ -100,18 +98,21 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2,
 // as parameter to the function partyCreate with the following exceptions :
 // between any 2 successive words in the same line there appears exactly one space char, not more.
 // in addition, no spaces can appear in the beginning and/or at the end of a line.
-// the persons displayed here are only those from position from_position (including) to
-// position to_position (including). if from_position <= size of the party then the display
-// is from position 1. if to_position >= size of the party then the display is till last position
-// (including).
+// in addition, a person name can be of any length and is not limited to 50 chars.
+// the persons displayed here are only those from position from_position (including) up to
+// position to_position (including). if from_position < 1 then the display
+// is from position 1. if to_position > size of the party then the display is up to (including)
+// the last position. can assume here that from_position <= to_position.
 // if party is NULL, then handle with assert.
 
 PartyResult displayParty(Party party, int from_position, int to_position);
 
 //----------------------------------------------------------------------
 // save the party in the file whose name is given.
-// all persons in all positions are saved. the file format is as described
-// in displayParty format.
+// the file format is as described in displayParty format, with the following exceptions :
+// 1. all persons in all positions are saved. (no from and to positions).
+// 2. person names are saved in the file only up to 50 first characters (or less if the name
+// has less than 50 characters).
 // fail if there is any problem concerned in creating/opening/writing to the file.
 // if the file already exists, then its old contents is lost.
 // if any parameter is NULL, then handle with assert.
@@ -128,14 +129,11 @@ bool haveCommonMembers(Party party1, Party party2);
 //----------------------------------------------------------------------
 // get the name, code and size (number of persons) of a party.
 // party code has exactly 9 char digits. party_name has 1 or more chars (length is
-// not known in advance).
+// not known in advance in this operation).
 // if any parameter (both input parameter and output parameters) is NULL then handle by assert.
 // fail in any other problem such as memory problem.
 
-PartyResult getPartyDetails(Party party, char **party_name, char *party_code, int *party_size);
+PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int *party_size);
 
 //----------------------------------------------------------------------
-
-
-
 #endif // PARTY_H_

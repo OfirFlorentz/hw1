@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "party.h"
 
 #define NAME_BUFFER 51
 #define ID_SIZE 9
@@ -12,7 +13,6 @@
 
 typedef struct person_t *Person;
 typedef enum  {PERSON_SUCSSESS, INPUT_ERROR, MEMORY_ERROR} Person_Result;
-typedef enum  { MASCULINE, FEMININE } Gender;
 
 
 /*the func get data and put into a Person starcture

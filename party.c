@@ -229,6 +229,9 @@ bool isMember(Party party, char *id) {
 
 PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party* outcome_party, int position_party_2[],
 	int n /*length of position_party_2*/, char *new_name, char *new_code) {
+	assert(original_party_1 != NULL && original_party_2 != NULL && outcome_party != NULL && new_name != NULL &&
+	new_code != NULL);
+	if (haveCommonMembers(*original_party_1, original_party_2)) return PARTY_FAIL;
 	Party new_party = malloc(sizeof(*new_party));
 	if (!new_party) return PARTY_FAIL;
 	strcpy(new_party->name, new_name);
@@ -260,6 +263,8 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 		listGetNext(new_list);
 		listGetNext(p2_list);
 	}
+	destroyParty(*original_party_1);
+	destroyParty(*original_party_2);
 	return PARTY_SUCCESS;
 }
 
@@ -338,10 +343,12 @@ bool haveCommonMembers(Party party1, Party party2) {
 
 //i deleted * from int *party_size
 
-PartyResult getPartyDetails(Party party, char *party_name, char *party_code, int *party_size) {
+PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int *party_size) {
 	assert(party_name != NULL && party_code != NULL && party_size != NULL);
-	strcpy(party_name, party->name);
-	strcpy(party_code, party->combination_code);
+	*party_name = malloc(sizeof(char) * NAME_BUFFER);
+	*party_code = malloc(sizeof(char) * NAME_BUFFER);
+	strcpy(*party_name, party->name);
+	strcpy(*party_code, party->combination_code);
 	*party_size = listGetSize(party->party_members);
 	return PARTY_SUCCESS;
 }
