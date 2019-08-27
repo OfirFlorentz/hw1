@@ -346,7 +346,14 @@ bool haveCommonMembers(Party party1, Party party2) {
 PartyResult getPartyDetails(Party party, char **party_name, char **party_code, int *party_size) {
 	assert(party_name != NULL && party_code != NULL && party_size != NULL);
 	*party_name = malloc(sizeof(char) * NAME_BUFFER);
+	if (party_name == NULL) {
+		return PARTY_FAIL;
+	}
 	*party_code = malloc(sizeof(char) * NAME_BUFFER);
+	if (party_code == NULL) {
+		free(party_name);
+		return PARTY_FAIL;
+	}
 	strcpy(*party_name, party->name);
 	strcpy(*party_code, party->combination_code);
 	*party_size = listGetSize(party->party_members);
