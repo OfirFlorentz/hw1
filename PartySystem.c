@@ -5,25 +5,11 @@
 #include "PartySystem.h"
 #include "set.h"
 
-#define MAX_LENGTH 50//Need to delete
 #define MAX_INT 2147483647
 
 struct partySystem {
     Set partySet;
 };
-
-/*static SetElement copyElement(SetElement element) {
-    FILE *file = fopen("copyfile.txt", "w+");
-    if(file == NULL) exit(1);
-    int check = saveParty((Party)element, "copyfile.txt");
-    if(check == PARTY_FAIL) exit(1);
-    Party newParty = malloc(sizeof(*newParty));
-    if(newParty == NULL) exit(1);
-    newParty = createParty("copyfile.txt");
-    if(newParty == NULL) exit(1);
-    fclose(file);
-    return newParty;
-}*/
 
 static SetElement copyElement(SetElement element) {
     return element;
@@ -69,9 +55,9 @@ PartySystem createPartySystem() {
 PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
     FILE* file = fopen(party_data_file, "r");
     if(file == NULL) return SYSTEM_FAIL;
-    int c = fgetc(file);
-    if (c == EOF) {
-        /* file empty */
+    char s;
+    fscanf(file, " %s", &s);//Need to check
+    if (feof(file)) {
         return SYSTEM_FAIL;
     }
     Party party = createParty(party_data_file);
@@ -94,52 +80,47 @@ PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
 //Need to add destroy Party
 PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
     int setResult = SET_NULL_ARGUMENT;
-    int *party_size = malloc(sizeof(int));
-    char *party_name = malloc(MAX_LENGTH*sizeof(char));
-    char *party_code = malloc(MAX_LENGTH*sizeof(char));
-    if(party_size == NULL || party_name == NULL || party_code == NULL) {
-        free(party_size);
-        free(party_name);
-        free(party_code);
-        return SYSTEM_FAIL;
-    }
+    PartyResult check;
+    int party_size;
+    char *party_name;
+    PartyCode party_code;
     SET_FOREACH(Party, iterator, party_system->partySet) {
-        getPartyDetails(iterator, party_name, party_code, party_size);
-        if(strcmp(party_code, prt_code)) {
+        check = getPartyDetails(iterator, &party_name, &party_code, &party_size);
+        if(check == PARTY_FAIL) {
+            return SYSTEM_FAIL;
+        }
+        if(!strcmp(party_code, prt_code)) {
+            destroyParty(iterator);
             setResult = setRemove(party_system->partySet, iterator);
         }
     }
-    free(party_size);
     free(party_name);
     free(party_code);
     return (setResult == SET_SUCCESS) ? SYSTEM_SUCCESS : SYSTEM_FAIL;
 }
 
-static int myCompare(const void* prt1, const void* prt2/*, int compare(Party prt1, Party prt2)*/) {
-    return
-}
+typedef int (*my_comp)(Party, Party);
+my_comp comp;
 
-typedef int (*my_comp)(void* , void*);
-my_comp p1;
+static int compConverter(void* p1, void* p2) {
+    return comp((Party)p1, (Party)p2);
+}
 
 PartySystemResult displayPartySystem(PartySystem party_system, int compare(Party prt1, Party prt2)) {
     assert(compare != NULL && party_system != NULL);
-    int party_system_size = setGetSize(party_system->partySet), i = 0;
-    Party arr = malloc(party_system_size*sizeof(arr));
-    if(arr == NULL) return SYSTEM_FAIL;
+    comp = compare;
+    Set tmpSet = setCreate(copyElement, freeElement, compConverter);
+    if(tmpSet == NULL) return SYSTEM_FAIL;
 
     SET_FOREACH(Party, iterator, party_system->partySet) {
-        arr[i] = iterator;
-        i++;
+        setAdd(tmpSet, iterator);
     }
-    p1=compare;
-    qsort(arr, party_system_size, sizeof(struct party), p1);//Check about the compare
-//    qsort(arr, party_system_size, sizeof(struct party), (my_comp)compare);//Check about the compare
-    for(int j = 0; j < party_system_size; j++) {
-        displayParty(arr[j], 0, MAX_INT)///Maybe there is a better way than MAX_INT
+    SET_FOREACH(Party, iterator, tmpSet) {
+        displayParty(iterator, 0, MAX_INT);
     }
-    free(arr);
+    setDestroy(tmpSet);
     printf("\n--------------------------------------------------------------------------------\n");
+    return SYSTEM_SUCCESS;
 }
 
 void destroyPartySystem(PartySystem party_system) {
