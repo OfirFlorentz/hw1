@@ -4,7 +4,6 @@
 #include <string.h>
 #include "person.h"
 
-#define NAME_SIZE 51
 #define ID_SIZE 10
 #define M_SIGN 'M'
 #define F_SIGN 'F'
