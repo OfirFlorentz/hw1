@@ -72,14 +72,14 @@ PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
             return SYSTEM_FAIL;
         }
     }
-    int result = setAdd(party_system->partySet, party);
+    SetResult result = setAdd(party_system->partySet, party);
     fclose(file);
     party = NULL;
     return (result == SET_SUCCESS) ? SYSTEM_SUCCESS : SYSTEM_FAIL;
 }
 //Need to add destroy Party
 PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
-    int setResult = SET_NULL_ARGUMENT;
+    SetResult setResult = SET_NULL_ARGUMENT;
     PartyResult check;
     int party_size;
     char *party_name;
@@ -90,7 +90,6 @@ PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
             return SYSTEM_FAIL;
         }
         if(!strcmp(party_code, prt_code)) {
-            destroyParty(iterator);
             setResult = setRemove(party_system->partySet, iterator);
         }
     }

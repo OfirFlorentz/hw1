@@ -1,20 +1,19 @@
 
 int compare(Party prt1, Party prt2) {
-    int result;
-    int *party_size1 = malloc(sizeof(int));
-    char *party_name1 = malloc(MAX_LENGTH*sizeof(char));
-    char *party_code1 = malloc(MAX_LENGTH*sizeof(char));
-    int *party_size2 = malloc(sizeof(int));
-    char *party_name2 = malloc(MAX_LENGTH*sizeof(char));
-    char *party_code2 = malloc(MAX_LENGTH*sizeof(char));
-    if(party_size1 == NULL || party_name1 == NULL || party_code1 == NULL || party_size2 == NULL || party_name2 == NULL || party_code2 == NULL) {
-        free(party_size1);
+    PartyResult result1, result2;
+    int party_size1, party_size2, result;
+    char *party_name1, *party_name2, *party_code1, *party_code2;
+    result1 = getPartyDetails(prt1, &party_name1, &party_code1, &party_size1);
+    if(result1 == PARTY_FAIL) {
+        printf("A memory problem in compare");
+        exit(1);
+    }
+    result2 = getPartyDetails(prt2, &party_name2, &party_code2, &party_size2);
+    if(result2 == PARTY_FAIL) {
         free(party_name1);
         free(party_code1);
-        free(party_size2);
-        free(party_name2);
-        free(party_code2);
-        exit(1);//Need to check if there is a better way
+        printf("A memory problem in compare");
+        exit(1);
     }
     if(party_size1 > party_size2) {
         result = 1;
@@ -23,10 +22,8 @@ int compare(Party prt1, Party prt2) {
     } else {
         result = strcmp(party_name2, party_name1);
     }
-    free(party_size1);
     free(party_name1);
     free(party_code1);
-    free(party_size2);
     free(party_name2);
     free(party_code2);
     return result;

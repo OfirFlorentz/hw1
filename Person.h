@@ -13,7 +13,7 @@ Person personCreate(char* name, char* id, PersonGender gender);
 void personDestroy(Person person);
 
 /* the func get a person and return a copy of him*/
-void* personCopy(Person person);
+Person personCopy(Person person);
 
 /*the func return the id of the person*/
 char* personGetId(Person person);
