@@ -178,17 +178,19 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
         return PARTY_FAIL;
     }
     List party2_list = (*original_party_2)->party_members;
-    Person party2_person= personCopy(listGetFirst(party2_list));
+    Person party2_person = listGetFirst(party2_list);
     int p2_counter = 0;
     while (party2_person != NULL && p2_counter < n )
     {
         addPerson(new_party, personGetName(party2_person), personGetId(party2_person),
-                personGetGender(party2_person), position_party_2[p2_counter++]);
-        party2_person = personCopy(listGetNext(party2_list));
+                  personGetGender(party2_person), position_party_2[p2_counter++]);
+        //personDestroy(party2_person);
+        party2_person = (listGetNext(party2_list));
 
     }
     while(party2_person != NULL) {
         listInsertLast(new_party->party_members, party2_person);
+        //personDestroy(party2_person);
         party2_person = listGetNext(party2_list);
     }
     *outcome_party = new_party;
@@ -224,11 +226,14 @@ PartyResult saveParty(Party party, char *party_data_file) {
     FILE* file =  fopen(party_data_file, "w");
     if (!file) return PARTY_FAIL;
     fputs(party->name, file);
+    fprintf(file,"\n");
     fputs(party->combination_code, file);
+    fprintf(file,"\n");
     List party_list = party->party_members;
     Person person = listGetFirst(party_list);
+
     while (person != NULL) {
-        fprintf(file, "%50s %s %c/n", personGetName(person), personGetId(person),
+        fprintf(file, "%s50 %s %c\n", personGetName(person), personGetId(person),
                 printGenderName(personGetGender(person)));
         person = listGetNext(party_list);
     }
@@ -262,3 +267,4 @@ PartyResult getPartyDetails(Party party, char **party_name, PartyCode *party_cod
     *party_size = listGetSize(party->party_members);
     return PARTY_SUCCESS;
 }
+
