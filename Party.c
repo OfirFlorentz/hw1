@@ -127,6 +127,11 @@ PartyResult addPerson(Party party, char *name, char *id, Gender gender, int posi
     if(person == NULL) {
         return PARTY_FAIL;
     }
+
+    if(position > listGetSize(tmpList)) {
+        listInsertLast(tmpList, person);
+        return PARTY_SUCCESS;
+    }
     listGetFirst(tmpList);
     for (int i = 1; i < position; i++) {
         listGetNext(tmpList);
@@ -216,7 +221,7 @@ PartyResult displayParty(Party party, int from_position, int to_position) {
             person = listGetNext(party_list);
             if (person == NULL) break;
         }
-        fprintf(stdout, "%s %s %c\r\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
+        fprintf(stdout, "%s %s %c\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
         person = NULL;
     }
     return PARTY_SUCCESS;
@@ -227,14 +232,14 @@ PartyResult saveParty(Party party, char *party_data_file) {
     FILE* file =  fopen(party_data_file, "w");
     if (!file) return PARTY_FAIL;
     fputs(party->name, file);
-    fprintf(file,"\r\n");
+    fprintf(file,"\n");
     fputs(party->combination_code, file);
-    fprintf(file,"\r\n");
+    fprintf(file,"\n");
     List party_list = party->party_members;
     Person person = listGetFirst(party_list);
 
     while (person != NULL) {
-        fprintf(file, "%s %s %c\r\n", personGetName(person), personGetId(person),
+        fprintf(file, "%.50s %s %c\n", personGetName(person), personGetId(person),
                 printGenderName(personGetGender(person)));
         person = listGetNext(party_list);
     }
