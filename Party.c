@@ -13,11 +13,9 @@
 #define F_SIGN 'F'
 #define ONE_SIGN '1'
 #define NINE_SIGN '9'
-#define MIN_PEPOLE_IN_FILE 2
 #define EOS '\0'
 
-struct party
-{
+struct party {
     char name[NAME_SIZE];
     char combination_code[NAME_SIZE];
     List party_members;
@@ -68,14 +66,10 @@ static Person fileLineToPerson(FILE* file) {
 in the list*/
 static void insertPersonsFromFile(List list, FILE* file) {
     assert(file != NULL && list != NULL);
-    while (!feof(file))
-    {
+    while (!feof(file)) {
         Person person = fileLineToPerson(file);
-        if(person == NULL) {
-            printf("Memory problem");
-            exit(1);
-        }
-        listInsertLast(list,person);
+        listInsertLast(list, person);
+        personDestroy(person);
     }
 }
 //----------------------------------------------------------------------
@@ -197,17 +191,22 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 
 PartyResult displayParty(Party party, int from_position, int to_position) {
     assert(party != NULL);
-    fprintf(stdout, "%s" ,party->name);
-    fprintf(stdout, "%s", party->combination_code);
+    fprintf(stdout, "%s\n" ,party->name);
+    fprintf(stdout, "%s\n", party->combination_code);
     List party_list = party->party_members;
     if (from_position < 1) from_position = 1;
     Person person;
-    for (int i = 0; i <= to_position - from_position && party_list != NULL; i++) {
-        person = listGetCurrent(party_list);
-        fprintf(stdout, "%s %s %c /n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
-        listGetNext(party_list);
+    for (int i = 0; i <= to_position - from_position; i++) {
+        if (i == 0) {
+            person = listGetFirst(party_list);
+        } else {
+            person = listGetNext(party_list);
+            if (person == NULL) break;
+        }
+        fprintf(stdout, "%s %s %c\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
+        personDestroy(person);
+        person = NULL;
     }
-    person = NULL;
     return PARTY_SUCCESS;
 }
 

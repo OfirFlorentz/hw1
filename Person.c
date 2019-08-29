@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "person.h"
+#include "Person.h"
 
 #define ID_SIZE 10
 #define M_SIGN 'M'
@@ -16,23 +16,23 @@ struct person_t {
 
 //The function gets a person and an id, and set the person id's to be id
 static Person_Result personSetId(char* id, Person person) {
-	if (strlen(id) != ID_SIZE) return INPUT_ERROR;
+	if (strlen(id) != ID_SIZE - 1) return INPUT_ERROR;
 	strcpy(person->id, id);
 	return PERSON_SUCSSESS;
 }
 
 //The function gets a person and a gender, and set the person's gender to be gender
-static Person_Result personSetGender(char genderSign, Person person) {
-	if (genderSign == M_SIGN) {
+/*static Person_Result personSetGender(PersonGender gender, Person person) {
+	if (gender == M_SIGN) {
 		person->gender = P_MASCULINE;
 		return PERSON_SUCSSESS;
 	}
-	else if (genderSign == F_SIGN) {
+	else if (gender == F_SIGN) {
 		person->gender = P_FEMININE;
 		return PERSON_SUCSSESS;
 	}
 	return INPUT_ERROR;
-}
+}*/
 
 //The function gets a person and a name, and set the person's name to be name
 static void personSetName(char *name, Person person) {
@@ -52,10 +52,11 @@ Person personCreate (char* name, char* id, PersonGender gender) {
 		personDestroy(person);
 		return NULL;
 	}
-	if (personSetGender(gender, person) != PERSON_SUCSSESS) {
+	person->gender = gender;
+	/*if (personSetGender(gender, person) != PERSON_SUCSSESS) {
 		personDestroy(person);
 		return NULL;
-	}
+	}*/
 	personSetName(name, person);
 
 	return person;
