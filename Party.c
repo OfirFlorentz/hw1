@@ -22,12 +22,12 @@ struct party {
     List party_members;
 };
 
-//Need to explain
+//the function change the types of personCopy for createList
 static void* genericPersonCopy(void* person) {
     return (void*)personCopy((Person)person);
 }
 
-//Need to explain
+//the function change the types of personDestroy for createList
 static void genericPersonDestroy(void* person) {
     personDestroy((Person)person);
 }
@@ -48,11 +48,14 @@ static bool personIsIdValid(char* id)
     return true;
 }
 
+//the get a char that reprasent gender and return the gender in the Gender type
 static Gender charToGender(char c) {
     if(c == M_SIGN) return MASCULINE;
     return FEMININE;
 }
 
+//The get a pointer to a file that his first line containe name, id, gender
+//the func return a Person struct that contain hold the values of the line
 static Person fileLineToPerson(FILE* file) {
     assert(file != NULL);
     char name[NAME_SIZE];
@@ -80,6 +83,7 @@ static char printGenderName(Gender gender) {
     return F_SIGN;
 }
 
+//The func get a name and a code. the func create and return a new  party with those values
 static Party newParty(char *name, char *code) {
     Party party = malloc(sizeof(*party));
     if (!party) return NULL;
@@ -130,6 +134,7 @@ PartyResult addPerson(Party party, char *name, char *id, Gender gender, int posi
 
     if(position > listGetSize(tmpList)) {
         listInsertLast(tmpList, person);
+        personDestroy(person);
         return PARTY_SUCCESS;
     }
     listGetFirst(tmpList);
