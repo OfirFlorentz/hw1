@@ -15,6 +15,7 @@
 #define NINE_SIGN '9'
 #define EOS '\0'
 
+
 struct party {
     char name[NAME_SIZE];
     char combination_code[NAME_SIZE];
@@ -203,8 +204,8 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 
 PartyResult displayParty(Party party, int from_position, int to_position) {
     assert(party != NULL);
-    fprintf(stdout, "%s\n" ,party->name);
-    fprintf(stdout, "%s\n", party->combination_code);
+    fprintf(stdout, "%s\r\n" ,party->name);
+    fprintf(stdout, "%s\r\n", party->combination_code);
     List party_list = party->party_members;
     if (from_position < 1) from_position = 1;
     Person person;
@@ -215,7 +216,7 @@ PartyResult displayParty(Party party, int from_position, int to_position) {
             person = listGetNext(party_list);
             if (person == NULL) break;
         }
-        fprintf(stdout, "%s %s %c\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
+        fprintf(stdout, "%s %s %c\r\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
         person = NULL;
     }
     return PARTY_SUCCESS;
@@ -226,14 +227,14 @@ PartyResult saveParty(Party party, char *party_data_file) {
     FILE* file =  fopen(party_data_file, "w");
     if (!file) return PARTY_FAIL;
     fputs(party->name, file);
-    fprintf(file,"\n");
+    fprintf(file,"\r\n");
     fputs(party->combination_code, file);
-    fprintf(file,"\n");
+    fprintf(file,"\r\n");
     List party_list = party->party_members;
     Person person = listGetFirst(party_list);
 
     while (person != NULL) {
-        fprintf(file, "%s50 %s %c\n", personGetName(person), personGetId(person),
+        fprintf(file, "%s %s %c\r\n", personGetName(person), personGetId(person),
                 printGenderName(personGetGender(person)));
         person = listGetNext(party_list);
     }
