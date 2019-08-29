@@ -112,6 +112,7 @@ Party createParty(char *party_data_file) {
 
 void destroyParty(Party party)
 {
+    if (party == NULL) return;
     listDestroy(party->party_members);
     free(party);
 }
@@ -190,10 +191,9 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
         listInsertLast(new_party->party_members, party2_person);
         party2_person = listGetNext(party2_list);
     }
-    displayParty(new_party,0,100);
     *outcome_party = new_party;
-    //destroyParty(*original_party_1);
-    //destroyParty(*original_party_2);
+    destroyParty(*original_party_1);
+    destroyParty(*original_party_2);
     *original_party_1 = NULL;
     *original_party_2 = NULL;
     return PARTY_SUCCESS;
@@ -226,10 +226,11 @@ PartyResult saveParty(Party party, char *party_data_file) {
     fputs(party->name, file);
     fputs(party->combination_code, file);
     List party_list = party->party_members;
-    while (party_list != NULL) {
-        Person p = listGetCurrent(party_list);
-        fprintf(file, "%50s %s %c/n", personGetName(p), personGetId(p), printGenderName(personGetGender(p)));
-        listGetNext(party_list);
+    Person person = listGetFirst(party_list);
+    while (person != NULL) {
+        fprintf(file, "%50s %s %c/n", personGetName(person), personGetId(person),
+                printGenderName(personGetGender(person)));
+        person = listGetNext(party_list);
     }
     fclose(file);
     return PARTY_SUCCESS;

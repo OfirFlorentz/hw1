@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include "Person.h"
 
@@ -21,19 +20,6 @@ static Person_Result personSetId(char* id, Person person) {
 	return PERSON_SUCSSESS;
 }
 
-//The function gets a person and a gender, and set the person's gender to be gender
-/*static Person_Result personSetGender(PersonGender gender, Person person) {
-	if (gender == M_SIGN) {
-		person->gender = P_MASCULINE;
-		return PERSON_SUCSSESS;
-	}
-	else if (gender == F_SIGN) {
-		person->gender = P_FEMININE;
-		return PERSON_SUCSSESS;
-	}
-	return INPUT_ERROR;
-}*/
-
 //The function gets a person and a name, and set the person's name to be name
 static void personSetName(char *name, Person person) {
     strcpy(person->name, name);
@@ -47,18 +33,12 @@ Person personCreate (char* name, char* id, PersonGender gender) {
 	    free(person);
 	    return NULL;
 	}
-
 	if (personSetId(id, person) != PERSON_SUCSSESS) {
 		personDestroy(person);
 		return NULL;
 	}
 	person->gender = gender;
-	/*if (personSetGender(gender, person) != PERSON_SUCSSESS) {
-		personDestroy(person);
-		return NULL;
-	}*/
 	personSetName(name, person);
-
 	return person;
 }
 
@@ -67,6 +47,7 @@ Person personCopy(Person person) {
 }
 
 void personDestroy(Person person) {
+    if (person == NULL) return;
 	free(person->name);
 	free(person);
 }
