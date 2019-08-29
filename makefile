@@ -45,7 +45,7 @@ Party_debug.o : Party.c Party.h list.h Person.h
 	$(CC) -c $(D) $(CFLAGS) $*.c -o $@
 PartySystem_debug.o : PartySystem.c PartySystem.h set.h
 	$(CC) -c $(D) $(CFLAGS) $*.c -o $@
-Person.o : Person.h
+Person.o_debug : Person.h
 	$(CC) -c $(D) $(CFLAGS) $*.c -o $@
 
 #For the command make clean, erase all of the .o and .exe files
