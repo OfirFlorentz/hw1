@@ -4,8 +4,6 @@
 #include "Person.h"
 
 #define ID_SIZE 10
-#define M_SIGN 'M'
-#define F_SIGN 'F'
 
 struct person_t {
 	char* name;
