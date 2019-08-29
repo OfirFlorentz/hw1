@@ -11,7 +11,7 @@
 #define ID_SIZE 10
 #define M_SIGN 'M'
 #define F_SIGN 'F'
-#define ONE_SIGN '1'
+#define ZERO_SIGN '0'
 #define NINE_SIGN '9'
 #define EOS '\0'
 
@@ -39,7 +39,7 @@ static bool personIsIdValid(char* id)
     assert(id != NULL);
     int counter = 0;
     while (id[counter] != EOS) {
-        if (id[counter] < ONE_SIGN || id[counter] > NINE_SIGN) return false;
+        if (id[counter] < ZERO_SIGN || id[counter] > NINE_SIGN) return false;
         counter++;
     }
     counter++;
@@ -74,10 +74,17 @@ static void insertPersonsFromFile(List list, FILE* file) {
 }
 //----------------------------------------------------------------------
 // changing Enum type to string. helps to SaveParty
-static char printGenderName(Gender gender)
-{
+static char printGenderName(Gender gender) {
     if (gender == MASCULINE) return M_SIGN;//we need to ask isreal if it should be M_SIGN or Mascoline
     return F_SIGN;
+}
+
+static Party newParty(char *name, char *code) {
+    Party party = malloc(sizeof(*party));
+    if (!party) return NULL;
+    strcpy(party->name, name);
+    strcpy(party->combination_code, code);
+    return  party;
 }
 
 Party createParty(char *party_data_file) {
@@ -111,81 +118,84 @@ void destroyParty(Party party)
 
 PartyResult addPerson(Party party, char *name, char *id, Gender gender, int position) {
     assert(party != NULL && name != NULL && id != NULL);
-    if(!personIsIdValid(id) || position < 1 || strcmp("", name) == 0 || isMember(party, id))  return PARTY_FAIL;
+    if(!personIsIdValid(id) || position < 1 || strcmp("", name) == 0) return PARTY_FAIL;
+    if(isMember(party, id))  return PARTY_FAIL;
     List tmpList = party->party_members;
     Person person = personCreate(name, id, gender);
     if(person == NULL) {
         return PARTY_FAIL;
     }
+    listGetFirst(tmpList);
     for (int i = 1; i < position; i++) {
         listGetNext(tmpList);
     }
-    ListResult result = listInsertBeforeCurrent(tmpList, person);
+    ListResult list_result = listInsertBeforeCurrent(tmpList, person);
     personDestroy(person);
     tmpList = NULL;
-    return result;
+    if (list_result == LIST_SUCCESS) return PARTY_SUCCESS;
+    return  PARTY_FAIL;
 }
 
 PartyResult deletePerson(Party party, char *id) {
     assert(party != NULL && id != NULL);//Need to also check if person appears in the party in more than 1 position
-    List tmpList = party->party_members;
-    while (tmpList != NULL) {
-        if (strcmp(personGetId(listGetCurrent(tmpList)), id) == 0) {
-            listRemoveCurrent(tmpList);
+    List tmp_list = party->party_members;
+    Person  person = listGetFirst(tmp_list);
+    while (person != NULL) {
+        if (strcmp(personGetId(person), id) == 0) {
+            listRemoveCurrent(tmp_list);
             return PARTY_SUCCESS;
         }
-        listGetNext(tmpList);
+        person = listGetNext(tmp_list);
     }
     return PARTY_FAIL;
 }
 
 bool isMember(Party party, char *id) {
-    List tmpList = party->party_members;
-    while (tmpList != NULL) {
-        if (strcmp(personGetId(listGetCurrent(tmpList)), id) == 0) return true;
-        listGetNext(tmpList);
+    List party_list = party->party_members;
+    int list_len = listGetSize(party_list);
+    for (int i = 0; i < list_len ; i++) {
+        if (i == 0) {
+            if (strcmp(id,personGetId(listGetFirst(party_list))) == 0) return  true;
+        } else {
+            if (strcmp(id,personGetId(listGetNext(party_list))) == 0) return  true;
+        }
     }
     return false;
 }
+
 
 PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party* outcome_party, int position_party_2[],
                         int n /*length of position_party_2*/, char *new_name, char *new_code) {
     assert(original_party_1 != NULL && original_party_2 != NULL && outcome_party != NULL && new_name != NULL &&
            new_code != NULL);
     if (haveCommonMembers(*original_party_1, *original_party_2)) return PARTY_FAIL;
-    Party new_party = malloc(sizeof(*new_party));
-    if (!new_party) return PARTY_FAIL;
-    strcpy(new_party->name, new_name);
-    strcpy(new_party->combination_code, new_code);
+    Party new_party = newParty(new_name, new_code);
+    if (new_party == NULL) return PARTY_FAIL;
     new_party->party_members = listCopy((*original_party_1)->party_members);
     if (new_party->party_members == NULL) {
-        free(new_party);
+        destroyParty(new_party);
         return PARTY_FAIL;
     }
-    List new_list = new_party->party_members;
-    List p2_list = (*original_party_2)->party_members;
-    // i assume array is ordered we need to check
-    int current_postion = 1;
+    List party2_list = (*original_party_2)->party_members;
+    Person party2_person= personCopy(listGetFirst(party2_list));
     int p2_counter = 0;
-    while (p2_list != NULL && p2_counter < n )
+    while (party2_person != NULL && p2_counter < n )
     {
-        if (position_party_2[p2_counter] == current_postion) {
-            p2_counter++;
-            listInsertBeforeCurrent(new_list, listGetCurrent(p2_list));
-            listGetNext(p2_list);
-        }
-        else {
-            listGetNext(new_list);
-        }
-        current_postion++;
+        addPerson(new_party, personGetName(party2_person), personGetId(party2_person),
+                personGetGender(party2_person), position_party_2[p2_counter++]);
+        party2_person = personCopy(listGetNext(party2_list));
+
     }
-    while(p2_list != NULL) {
-        listInsertAfterCurrent(new_list, listGetCurrent(p2_list));
-        listGetNext(new_list);
-        listGetNext(p2_list);
+    while(party2_person != NULL) {
+        listInsertLast(new_party->party_members, party2_person);
+        party2_person = listGetNext(party2_list);
     }
-    destroyParty(*original_party_1);
-    destroyParty(*original_party_2);
+    displayParty(new_party,0,100);
+    *outcome_party = new_party;
+    //destroyParty(*original_party_1);
+    //destroyParty(*original_party_2);
+    *original_party_1 = NULL;
+    *original_party_2 = NULL;
     return PARTY_SUCCESS;
 }
 
@@ -204,7 +214,6 @@ PartyResult displayParty(Party party, int from_position, int to_position) {
             if (person == NULL) break;
         }
         fprintf(stdout, "%s %s %c\n", personGetName(person), personGetId(person), printGenderName(personGetGender(person)));
-        personDestroy(person);
         person = NULL;
     }
     return PARTY_SUCCESS;
@@ -228,12 +237,10 @@ PartyResult saveParty(Party party, char *party_data_file) {
 
 bool haveCommonMembers(Party party1, Party party2) {
     assert(party1 != NULL && party2 != NULL);
-    List party_1_list = party1->party_members;
-    char cur_id[ID_SIZE];
-    while (party_1_list != NULL) {
-        strcpy(cur_id, personGetId(listGetCurrent(party_1_list)));
-        if (isMember(party2, cur_id)) return true;
-        listGetNext(party_1_list);
+    Person party1_person = listGetFirst(party1->party_members);
+    while (party1_person != NULL) {
+        if (isMember(party2, personGetId(party1_person))) return true;
+        party1_person = listGetNext(party1->party_members);
     }
     return false;
 }
