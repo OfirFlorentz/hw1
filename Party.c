@@ -195,13 +195,11 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
     {
         addPerson(new_party, personGetName(party2_person), personGetId(party2_person),
                   personGetGender(party2_person), position_party_2[p2_counter++]);
-        //personDestroy(party2_person);
         party2_person = (listGetNext(party2_list));
 
     }
     while(party2_person != NULL) {
         listInsertLast(new_party->party_members, party2_person);
-        //personDestroy(party2_person);
         party2_person = listGetNext(party2_list);
     }
     *outcome_party = new_party;
@@ -214,8 +212,8 @@ PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party*
 
 PartyResult displayParty(Party party, int from_position, int to_position) {
     assert(party != NULL);
-    fprintf(stdout, "%s\r\n" ,party->name);
-    fprintf(stdout, "%s\r\n", party->combination_code);
+    fprintf(stdout, "%s\n" ,party->name);
+    fprintf(stdout, "%s\n", party->combination_code);
     List party_list = party->party_members;
     if (from_position < 1) from_position = 1;
     Person person;
