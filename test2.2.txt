@@ -1,33 +1,4 @@
 
-int compare(Party prt1, Party prt2) {
-    PartyResult result1, result2;
-    int party_size1, party_size2, result;
-    char *party_name1, *party_name2, *party_code1, *party_code2;
-    result1 = getPartyDetails(prt1, &party_name1, &party_code1, &party_size1);
-    if(result1 == PARTY_FAIL) {
-        printf("A memory problem in compare");
-        exit(1);
-    }
-    result2 = getPartyDetails(prt2, &party_name2, &party_code2, &party_size2);
-    if(result2 == PARTY_FAIL) {
-        free(party_name1);
-        free(party_code1);
-        printf("A memory problem in compare");
-        exit(1);
-    }
-    if(party_size1 > party_size2) {
-        result = 1;
-    } else if(party_size2 > party_size1) {
-        result = -1;
-    } else {
-        result = strcmp(party_name2, party_name1);
-    }
-    free(party_name1);
-    free(party_code1);
-    free(party_name2);
-    free(party_code2);
-    return result;
-}
 
-displayPartySystem(ps1, int compare(Party prt1, Party prt2));
+displayPartySystem(ps1, compare2);
 

@@ -11,10 +11,14 @@ struct partySystem {
     Set partySet;
 };
 
+//The func get an element (a party) and return the pointer
+//The func purpose is for setCreate
 static SetElement copyElement(SetElement element) {
-    return element;
+    return (Party)element;
 }
 
+//The func get two elements (parties) and compare tham by their name and code
+//The func purpose is for setCreate
 static int compareElements(SetElement element1, SetElement element2) {
     int party_size1, party_size2;
     char *party_name1, *party_name2;
@@ -36,8 +40,16 @@ static int compareElements(SetElement element1, SetElement element2) {
     return result1 * result2;
 }
 
+//The func get an element (a party) and destory it
+//The func purpose is for setCreate
 static void freeElement(SetElement element) {
     destroyParty((Party)element);
+}
+
+//The func get an element (a party) and return the pointer
+//The func purpose is for setCreate in displayPartySystem
+static void notDestroy(SetElement element) {
+    return;
 }
 
 PartySystem createPartySystem() {
@@ -55,9 +67,9 @@ PartySystem createPartySystem() {
 PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
     FILE* file = fopen(party_data_file, "r");
     if(file == NULL) return SYSTEM_FAIL;
-    char s;
-    fscanf(file, " %s", &s);//Need to check
-    if (feof(file)) {
+    char s = EOF;
+    fscanf(file, " %s ", &s);//Need to check
+    if (feof(file) && s == EOF) {
         return SYSTEM_FAIL;
     }
     Party party = createParty(party_data_file);
@@ -77,7 +89,7 @@ PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
     party = NULL;
     return (result == SET_SUCCESS) ? SYSTEM_SUCCESS : SYSTEM_FAIL;
 }
-//Need to add destroy Party
+
 PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
     SetResult setResult = SET_NULL_ARGUMENT;
     PartyResult check;
@@ -108,17 +120,18 @@ static int compConverter(void* p1, void* p2) {
 PartySystemResult displayPartySystem(PartySystem party_system, int compare(Party prt1, Party prt2)) {
     assert(compare != NULL && party_system != NULL);
     comp = compare;
-    Set tmpSet = setCreate(copyElement, freeElement, compConverter);
+    Set tmpSet = setCreate(copyElement, notDestroy, compConverter);
     if(tmpSet == NULL) return SYSTEM_FAIL;
 
     SET_FOREACH(Party, iterator, party_system->partySet) {
         setAdd(tmpSet, iterator);
     }
+
     SET_FOREACH(Party, iterator, tmpSet) {
         displayParty(iterator, 0, MAX_INT);
+        printf("\n--------------------------------------------------------------------------------\n");
     }
     setDestroy(tmpSet);
-    printf("\n--------------------------------------------------------------------------------\n");
     return SYSTEM_SUCCESS;
 }
 
@@ -126,4 +139,3 @@ void destroyPartySystem(PartySystem party_system) {
     setDestroy(party_system->partySet);
     free(party_system);
 }
-
