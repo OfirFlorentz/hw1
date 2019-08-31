@@ -10,7 +10,7 @@ TEST = test
 LIBFILE = -L. -lmtm
 CFLAGS = -std=c99 -Wall -Werror -pedantic-errors
 ALL_O_FILES = $(OBJS) $(OBJS_DEBUG) test1.o test2.o test2_debug.o test.o
-ALL_EXE_FILES = $(TEST1) $(TEST2) $(TEST2D) $(TEST)
+ALL_EXE_FILES = $(TEST1) $(TEST2) $(TEST2D) test.exe
 
 #For the command make
 test1.exe : $(OBJS) test1.o
@@ -26,7 +26,7 @@ $(TEST2D) : $(OBJS_DEBUG) test2_debug.o
 
 #For the command make test
 $(TEST) : $(OBJS) test.o
-	$(CC) -o $@ $(ND) $(OBJS) test.o $(LIBFILE)
+	$(CC) -o test.exe $(ND) $(OBJS) test.o $(LIBFILE)
 
 #All of the object files in release mode
 test.o : test.c Party.h PartySystem.h

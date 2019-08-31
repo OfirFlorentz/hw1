@@ -159,11 +159,13 @@ static int checkMoreThanOne(Party party, char *id) {
 
 PartyResult deletePerson(Party party, char *id) {
     assert(party != NULL && id != NULL);
-    assert(checkMoreThanOne(party, id) <= 1);
+    int check = checkMoreThanOne(party, id);
+    assert(check <= 1);
+    check =0;
     List tmp_list = party->party_members;
     Person  person = listGetFirst(tmp_list);
     while (person != NULL) {
-        if (strcmp(personGetId(person), id) == 0) {
+        if (strcmp(personGetId(person), id) == check) {
             listRemoveCurrent(tmp_list);
             return PARTY_SUCCESS;
         }
