@@ -6,7 +6,7 @@ D = -g
 TEST1 = test1.exe
 TEST2 = test2.exe
 TEST2D = test2_debug.exe
-TEST = test.exe
+TEST = test
 LIBFILE = -L. -lmtm
 CFLAGS = -std=c99 -Wall -Werror -pedantic-errors
 ALL_O_FILES = $(OBJS) $(OBJS_DEBUG) test1.o test2.o test2_debug.o test.o
@@ -32,6 +32,8 @@ $(TEST) : $(OBJS) test.o
 test.o : test.c Party.h PartySystem.h
 	$(CC) -c $(ND) $(CFLAGS) $*.c
 test1.o : test1.c Party.h PartySystem.h
+	$(CC) -c $(ND) $(CFLAGS) $*.c
+test2.o : test2.c Party.h PartySystem.h
 	$(CC) -c $(ND) $(CFLAGS) $*.c
 Party.o : Party.c Party.h list.h Person.h
 	$(CC) -c $(ND) $(CFLAGS) $*.c

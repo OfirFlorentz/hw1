@@ -79,7 +79,7 @@ static void insertPersonsFromFile(List list, FILE* file) {
 //----------------------------------------------------------------------
 // changing Enum type to string. helps to SaveParty
 static char printGenderName(Gender gender) {
-    if (gender == MASCULINE) return M_SIGN;//we need to ask isreal if it should be M_SIGN or Mascoline
+    if (gender == MASCULINE) return M_SIGN;
     return F_SIGN;
 }
 
@@ -148,8 +148,18 @@ PartyResult addPerson(Party party, char *name, char *id, Gender gender, int posi
     return  PARTY_FAIL;
 }
 
+//The function get a party and an id and return how much persons with the id are in the party
+static int checkMoreThanOne(Party party, char *id) {
+    int counter = 0;
+    LIST_FOREACH(Person, iterator, party->party_members) {
+        if(strcmp(id, personGetId(iterator)) == 0) counter++;
+    }
+    return counter;
+}
+
 PartyResult deletePerson(Party party, char *id) {
-    assert(party != NULL && id != NULL);//Need to also check if person appears in the party in more than 1 position
+    assert(party != NULL && id != NULL);
+    assert(checkMoreThanOne(party, id) <= 1);
     List tmp_list = party->party_members;
     Person  person = listGetFirst(tmp_list);
     while (person != NULL) {
@@ -163,6 +173,7 @@ PartyResult deletePerson(Party party, char *id) {
 }
 
 bool isMember(Party party, char *id) {
+    assert(party != NULL && id != NULL);
     List party_list = party->party_members;
     int list_len = listGetSize(party_list);
     for (int i = 0; i < list_len ; i++) {
@@ -179,7 +190,7 @@ bool isMember(Party party, char *id) {
 PartyResult joinParties(Party* original_party_1, Party* original_party_2, Party* outcome_party, int position_party_2[],
                         int n /*length of position_party_2*/, char *new_name, char *new_code) {
     assert(original_party_1 != NULL && original_party_2 != NULL && outcome_party != NULL && new_name != NULL &&
-           new_code != NULL);
+           new_code != NULL && position_party_2 != NULL);
     if (haveCommonMembers(*original_party_1, *original_party_2)) return PARTY_FAIL;
     Party new_party = newParty(new_name, new_code);
     if (new_party == NULL) return PARTY_FAIL;
@@ -231,7 +242,7 @@ PartyResult displayParty(Party party, int from_position, int to_position) {
 }
 
 PartyResult saveParty(Party party, char *party_data_file) {
-    assert(party != NULL);
+    assert(party != NULL && party_data_file != NULL);
     FILE* file =  fopen(party_data_file, "w");
     if (!file) return PARTY_FAIL;
     fputs(party->name, file);
@@ -261,7 +272,7 @@ bool haveCommonMembers(Party party1, Party party2) {
 }
 
 PartyResult getPartyDetails(Party party, char **party_name, PartyCode *party_code, int *party_size) {
-    assert(party_name != NULL && party_code != NULL && party_size != NULL);
+    assert(party != NULL && party_name != NULL && party_code != NULL && party_size != NULL);
     *party_name = malloc(sizeof(char) * NAME_SIZE);
     if (*party_name == NULL) {
         return PARTY_FAIL;

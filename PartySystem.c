@@ -29,6 +29,10 @@ static int compareElements(SetElement element1, SetElement element2) {
     check2 = getPartyDetails((Party)element2, &party_name2, &party_code2, &party_size2);
     if(check1 == PARTY_FAIL || check2 == PARTY_FAIL) {
         printf("Error in compareElements");
+        free(party_name1);
+        free(party_code1);
+        free(party_name2);
+        free(party_code2);
         exit(1);
     }
     int result1 = strcmp(party_code1, party_code2);
@@ -37,7 +41,7 @@ static int compareElements(SetElement element1, SetElement element2) {
     free(party_code1);
     free(party_name2);
     free(party_code2);
-    return result1 * result2;
+    return (result1*result2);
 }
 
 //The func get an element (a party) and destory it
@@ -68,7 +72,7 @@ PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
     FILE* file = fopen(party_data_file, "r");
     if(file == NULL) return SYSTEM_FAIL;
     char s = EOF;
-    fscanf(file, " %s ", &s);//Need to check
+    fscanf(file, " %s ", &s);
     if (feof(file) && s == EOF) {
         return SYSTEM_FAIL;
     }
@@ -86,11 +90,17 @@ PartySystemResult addParty(PartySystem party_system, char *party_data_file) {
     }
     SetResult result = setAdd(party_system->partySet, party);
     fclose(file);
+    if(result == SET_SUCCESS) {
+        party = NULL;
+        return SYSTEM_SUCCESS;
+    }
+    destroyParty(party);
     party = NULL;
-    return (result == SET_SUCCESS) ? SYSTEM_SUCCESS : SYSTEM_FAIL;
+    return SYSTEM_FAIL;
 }
 
 PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
+    assert(party_system != NULL);
     SetResult setResult = SET_NULL_ARGUMENT;
     PartyResult check;
     int party_size;
@@ -99,9 +109,11 @@ PartySystemResult deleteParty(PartySystem party_system, PartyCode prt_code) {
     SET_FOREACH(Party, iterator, party_system->partySet) {
         check = getPartyDetails(iterator, &party_name, &party_code, &party_size);
         if(check == PARTY_FAIL) {
+            free(party_name);
+            free(party_code);
             return SYSTEM_FAIL;
         }
-        if(!strcmp(party_code, prt_code)) {
+        if(strcmp(party_code, prt_code) == 0) {
             setResult = setRemove(party_system->partySet, iterator);
         }
     }
